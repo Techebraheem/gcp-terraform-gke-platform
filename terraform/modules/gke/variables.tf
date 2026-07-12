@@ -22,10 +22,10 @@ variable "services_range_name" {
   type = string
 }
 
-variable "master_cidr" {
-  type    = string
-  default = "172.16.0.0/28"
-}
+#variable "master_cidr" {
+ # type    = string
+ # default = "172.16.0.0/28"
+#}
 
 variable "authorized_network_cidr" {
   type        = string

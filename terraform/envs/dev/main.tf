@@ -9,7 +9,7 @@ terraform {
   }
 
   backend "gcs" {
-    bucket = "REPLACE_ME_terraform-state-bucket"
+    bucket = "cloudengr-prep-tfstate"
     prefix = "gcp-reference-project/dev"
   }
 }
@@ -76,6 +76,8 @@ module "artifact_registry" {
   project_id           = var.project_id
   region               = var.region
   attestor_public_key  = var.attestor_public_key
+
+  depends_on = [google_project_service.apis]
 }
 
 module "gke" {
@@ -88,10 +90,18 @@ module "gke" {
   services_range_name      = module.vpc.services_range_name
   authorized_network_cidr  = var.authorized_network_cidr
   node_sa_email            = google_service_account.gke_node_sa.email
+
+  # Also depends implicitly on module.vpc via network_id/subnet_id above,
+  # but the explicit dependency on API enablement is what's new here —
+  # without it, Terraform has no reason to wait for container.googleapis.com
+  # to finish propagating before trying to create the cluster.
+  depends_on = [google_project_service.apis, module.vpc]
 }
 
 module "secret_manager" {
   source              = "../../modules/secret-manager"
   environment         = "dev"
   flask_app_sa_email  = module.iam.flask_app_sa_email
+
+  depends_on = [google_project_service.apis]
 }

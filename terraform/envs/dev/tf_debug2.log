@@ -1,0 +1,268 @@
+[0m[1mgoogle_project_service.apis["iam.googleapis.com"]: Refreshing state... [id=cloudengr-prep/iam.googleapis.com][0m
+[0m[1mgoogle_project_service.apis["container.googleapis.com"]: Refreshing state... [id=cloudengr-prep/container.googleapis.com][0m
+[0m[1mgoogle_project_service.apis["containerscanning.googleapis.com"]: Refreshing state... [id=cloudengr-prep/containerscanning.googleapis.com][0m
+[0m[1mgoogle_project_service.apis["cloudbuild.googleapis.com"]: Refreshing state... [id=cloudengr-prep/cloudbuild.googleapis.com][0m
+[0m[1mgoogle_project_service.apis["binaryauthorization.googleapis.com"]: Refreshing state... [id=cloudengr-prep/binaryauthorization.googleapis.com][0m
+[0m[1mgoogle_project_service.apis["monitoring.googleapis.com"]: Refreshing state... [id=cloudengr-prep/monitoring.googleapis.com][0m
+[0m[1mgoogle_project_service.apis["artifactregistry.googleapis.com"]: Refreshing state... [id=cloudengr-prep/artifactregistry.googleapis.com][0m
+[0m[1mgoogle_project_service.apis["compute.googleapis.com"]: Refreshing state... [id=cloudengr-prep/compute.googleapis.com][0m
+[0m[1mgoogle_project_service.apis["containeranalysis.googleapis.com"]: Refreshing state... [id=cloudengr-prep/containeranalysis.googleapis.com][0m
+[0m[1mgoogle_service_account.gke_node_sa: Refreshing state... [id=projects/cloudengr-prep/serviceAccounts/gke-node-sa@cloudengr-prep.iam.gserviceaccount.com][0m
+[0m[1mgoogle_project_service.apis["secretmanager.googleapis.com"]: Refreshing state... [id=cloudengr-prep/secretmanager.googleapis.com][0m
+[0m[1mgoogle_project_iam_member.node_sa_minimal["roles/monitoring.viewer"]: Refreshing state... [id=cloudengr-prep/roles/monitoring.viewer/serviceAccount:gke-node-sa@cloudengr-prep.iam.gserviceaccount.com][0m
+[0m[1mgoogle_project_service.apis["logging.googleapis.com"]: Refreshing state... [id=cloudengr-prep/logging.googleapis.com][0m
+[0m[1mgoogle_project_iam_member.node_sa_minimal["roles/logging.logWriter"]: Refreshing state... [id=cloudengr-prep/roles/logging.logWriter/serviceAccount:gke-node-sa@cloudengr-prep.iam.gserviceaccount.com][0m
+[0m[1mgoogle_project_iam_member.node_sa_minimal["roles/monitoring.metricWriter"]: Refreshing state... [id=cloudengr-prep/roles/monitoring.metricWriter/serviceAccount:gke-node-sa@cloudengr-prep.iam.gserviceaccount.com][0m
+[0m[1mgoogle_project_iam_member.node_sa_minimal["roles/artifactregistry.reader"]: Refreshing state... [id=cloudengr-prep/roles/artifactregistry.reader/serviceAccount:gke-node-sa@cloudengr-prep.iam.gserviceaccount.com][0m
+[0m[1mmodule.iam.google_service_account.cloudbuild_sa: Refreshing state... [id=projects/cloudengr-prep/serviceAccounts/cloudbuild-deployer@cloudengr-prep.iam.gserviceaccount.com][0m
+[0m[1mmodule.iam.google_project_iam_custom_role.release_approver: Refreshing state... [id=projects/cloudengr-prep/roles/releaseApprover][0m
+[0m[1mmodule.iam.google_service_account.flask_app_sa: Refreshing state... [id=projects/cloudengr-prep/serviceAccounts/flask-app-workload@cloudengr-prep.iam.gserviceaccount.com][0m
+[0m[1mmodule.artifact_registry.google_project_service.container_scanning: Refreshing state... [id=cloudengr-prep/containerscanning.googleapis.com][0m
+[0m[1mmodule.secret_manager.google_secret_manager_secret.flask_secret_key: Refreshing state... [id=projects/cloudengr-prep/secrets/flask-app-secret-key][0m
+[0m[1mmodule.secret_manager.google_secret_manager_secret.db_connection_string: Refreshing state... [id=projects/cloudengr-prep/secrets/flask-app-db-connection][0m
+[0m[1mmodule.artifact_registry.google_artifact_registry_repository.flask_app_repo: Refreshing state... [id=projects/cloudengr-prep/locations/europe-west2/repositories/flask-app][0m
+[0m[1mmodule.iam.google_service_account.cloudbuild_pr_sa: Refreshing state... [id=projects/cloudengr-prep/serviceAccounts/cloudbuild-pr-validator@cloudengr-prep.iam.gserviceaccount.com][0m
+[0m[1mmodule.vpc.google_compute_network.vpc: Refreshing state... [id=projects/cloudengr-prep/global/networks/cloudengr-prep-vpc][0m
+[0m[1mmodule.artifact_registry.google_container_analysis_note.build_note: Refreshing state... [id=projects/cloudengr-prep/notes/cloudbuild-passed-note][0m
+[0m[1mmodule.iam.google_project_iam_member.cloudbuild_gke_deployer: Refreshing state... [id=cloudengr-prep/roles/container.developer/serviceAccount:cloudbuild-deployer@cloudengr-prep.iam.gserviceaccount.com][0m
+[0m[1mmodule.iam.google_project_iam_member.cloudbuild_logging: Refreshing state... [id=cloudengr-prep/roles/logging.logWriter/serviceAccount:cloudbuild-deployer@cloudengr-prep.iam.gserviceaccount.com][0m
+[0m[1mmodule.iam.google_project_iam_member.cloudbuild_secret_accessor: Refreshing state... [id=cloudengr-prep/roles/secretmanager.secretAccessor/serviceAccount:cloudbuild-deployer@cloudengr-prep.iam.gserviceaccount.com][0m
+[0m[1mmodule.iam.google_project_iam_member.cloudbuild_artifact_writer: Refreshing state... [id=cloudengr-prep/roles/artifactregistry.writer/serviceAccount:cloudbuild-deployer@cloudengr-prep.iam.gserviceaccount.com][0m
+[0m[1mmodule.iam.google_project_iam_member.flask_app_monitoring: Refreshing state... [id=cloudengr-prep/roles/monitoring.metricWriter/serviceAccount:flask-app-workload@cloudengr-prep.iam.gserviceaccount.com][0m
+[0m[1mmodule.iam.google_project_iam_member.flask_app_logging: Refreshing state... [id=cloudengr-prep/roles/logging.logWriter/serviceAccount:flask-app-workload@cloudengr-prep.iam.gserviceaccount.com][0m
+[0m[1mmodule.iam.google_project_iam_member.flask_app_secret_accessor: Refreshing state... [id=cloudengr-prep/roles/secretmanager.secretAccessor/serviceAccount:flask-app-workload@cloudengr-prep.iam.gserviceaccount.com][0m
+[0m[1mmodule.iam.google_service_account_iam_member.workload_identity_binding: Refreshing state... [id=projects/cloudengr-prep/serviceAccounts/flask-app-workload@cloudengr-prep.iam.gserviceaccount.com/roles/iam.workloadIdentityUser/serviceAccount:cloudengr-prep.svc.id.goog[flask-app/flask-app-ksa]][0m
+[0m[1mmodule.artifact_registry.google_binary_authorization_attestor.build_attestor: Refreshing state... [id=projects/cloudengr-prep/attestors/cloudbuild-passed-attestor][0m
+[0m[1mmodule.vpc.google_compute_firewall.allow_gke_master: Refreshing state... [id=projects/cloudengr-prep/global/firewalls/cloudengr-prep-allow-gke-master][0m
+[0m[1mmodule.vpc.google_compute_subnetwork.gke_subnet: Refreshing state... [id=projects/cloudengr-prep/regions/europe-west2/subnetworks/cloudengr-prep-gke-subnet][0m
+[0m[1mmodule.vpc.google_compute_firewall.allow_internal: Refreshing state... [id=projects/cloudengr-prep/global/firewalls/cloudengr-prep-allow-internal][0m
+[0m[1mmodule.vpc.google_compute_router.router: Refreshing state... [id=projects/cloudengr-prep/regions/europe-west2/routers/cloudengr-prep-router][0m
+[0m[1mmodule.vpc.google_compute_firewall.deny_all_ingress: Refreshing state... [id=projects/cloudengr-prep/global/firewalls/cloudengr-prep-deny-all-ingress][0m
+[0m[1mmodule.secret_manager.google_secret_manager_secret_iam_member.app_reads_secret_key: Refreshing state... [id=projects/cloudengr-prep/secrets/flask-app-secret-key/roles/secretmanager.secretAccessor/serviceAccount:flask-app-workload@cloudengr-prep.iam.gserviceaccount.com][0m
+[0m[1mmodule.secret_manager.google_secret_manager_secret_iam_member.app_reads_db_conn: Refreshing state... [id=projects/cloudengr-prep/secrets/flask-app-db-connection/roles/secretmanager.secretAccessor/serviceAccount:flask-app-workload@cloudengr-prep.iam.gserviceaccount.com][0m
+[0m[1mmodule.artifact_registry.google_binary_authorization_policy.policy: Refreshing state... [id=projects/cloudengr-prep][0m
+[0m[1mmodule.vpc.google_compute_router_nat.nat: Refreshing state... [id=cloudengr-prep/europe-west2/cloudengr-prep-router/cloudengr-prep-nat][0m
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  [32m+[0m create[0m
+
+Terraform will perform the following actions:
+
+[1m  # module.gke.google_container_cluster.primary[0m will be created
+[0m  [32m+[0m[0m resource "google_container_cluster" "primary" {
+      [32m+[0m[0m cluster_ipv4_cidr                        = (known after apply)
+      [32m+[0m[0m datapath_provider                        = "ADVANCED_DATAPATH"
+      [32m+[0m[0m default_max_pods_per_node                = (known after apply)
+      [32m+[0m[0m deletion_protection                      = false
+      [32m+[0m[0m enable_cilium_clusterwide_network_policy = false
+      [32m+[0m[0m enable_intranode_visibility              = (known after apply)
+      [32m+[0m[0m enable_kubernetes_alpha                  = false
+      [32m+[0m[0m enable_l4_ilb_subsetting                 = false
+      [32m+[0m[0m enable_legacy_abac                       = false
+      [32m+[0m[0m enable_multi_networking                  = false
+      [32m+[0m[0m enable_shielded_nodes                    = true
+      [32m+[0m[0m endpoint                                 = (known after apply)
+      [32m+[0m[0m id                                       = (known after apply)
+      [32m+[0m[0m initial_node_count                       = 1
+      [32m+[0m[0m label_fingerprint                        = (known after apply)
+      [32m+[0m[0m location                                 = "europe-west2"
+      [32m+[0m[0m logging_service                          = (known after apply)
+      [32m+[0m[0m master_version                           = (known after apply)
+      [32m+[0m[0m monitoring_service                       = (known after apply)
+      [32m+[0m[0m name                                     = "cloudengr-prep-gke"
+      [32m+[0m[0m network                                  = "projects/cloudengr-prep/global/networks/cloudengr-prep-vpc"
+      [32m+[0m[0m networking_mode                          = "VPC_NATIVE"
+      [32m+[0m[0m node_locations                           = (known after apply)
+      [32m+[0m[0m node_version                             = (known after apply)
+      [32m+[0m[0m operation                                = (known after apply)
+      [32m+[0m[0m private_ipv6_google_access               = (known after apply)
+      [32m+[0m[0m project                                  = (known after apply)
+      [32m+[0m[0m remove_default_node_pool                 = true
+      [32m+[0m[0m self_link                                = (known after apply)
+      [32m+[0m[0m services_ipv4_cidr                       = (known after apply)
+      [32m+[0m[0m subnetwork                               = "projects/cloudengr-prep/regions/europe-west2/subnetworks/cloudengr-prep-gke-subnet"
+      [32m+[0m[0m tpu_ipv4_cidr_block                      = (known after apply)
+
+      [32m+[0m[0m addons_config (known after apply)
+
+      [32m+[0m[0m authenticator_groups_config (known after apply)
+
+      [32m+[0m[0m binary_authorization {
+          [32m+[0m[0m evaluation_mode = "PROJECT_SINGLETON_POLICY_ENFORCE"
+        }
+
+      [32m+[0m[0m cluster_autoscaling (known after apply)
+
+      [32m+[0m[0m confidential_nodes (known after apply)
+
+      [32m+[0m[0m cost_management_config (known after apply)
+
+      [32m+[0m[0m database_encryption (known after apply)
+
+      [32m+[0m[0m default_snat_status (known after apply)
+
+      [32m+[0m[0m gateway_api_config (known after apply)
+
+      [32m+[0m[0m identity_service_config (known after apply)
+
+      [32m+[0m[0m ip_allocation_policy {
+          [32m+[0m[0m cluster_ipv4_cidr_block       = (known after apply)
+          [32m+[0m[0m cluster_secondary_range_name  = "pods"
+          [32m+[0m[0m services_ipv4_cidr_block      = (known after apply)
+          [32m+[0m[0m services_secondary_range_name = "services"
+          [32m+[0m[0m stack_type                    = "IPV4"
+
+          [32m+[0m[0m pod_cidr_overprovision_config (known after apply)
+        }
+
+      [32m+[0m[0m logging_config {
+          [32m+[0m[0m enable_components = [
+              [32m+[0m[0m "SYSTEM_COMPONENTS",
+              [32m+[0m[0m "WORKLOADS",
+            ]
+        }
+
+      [32m+[0m[0m master_auth (known after apply)
+
+      [32m+[0m[0m master_authorized_networks_config {
+          [32m+[0m[0m gcp_public_cidrs_access_enabled = (known after apply)
+
+          [32m+[0m[0m cidr_blocks {
+              [32m+[0m[0m cidr_block   = "102.91.77.7/32"
+              [32m+[0m[0m display_name = "office-and-cloudbuild"
+            }
+        }
+
+      [32m+[0m[0m mesh_certificates (known after apply)
+
+      [32m+[0m[0m monitoring_config {
+          [32m+[0m[0m enable_components = [
+              [32m+[0m[0m "SYSTEM_COMPONENTS",
+              [32m+[0m[0m "WORKLOADS",
+            ]
+
+          [32m+[0m[0m advanced_datapath_observability_config (known after apply)
+
+          [32m+[0m[0m managed_prometheus {
+              [32m+[0m[0m enabled = true
+            }
+        }
+
+      [32m+[0m[0m network_policy {
+          [32m+[0m[0m enabled = false
+        }
+
+      [32m+[0m[0m node_config (known after apply)
+
+      [32m+[0m[0m node_pool (known after apply)
+
+      [32m+[0m[0m node_pool_auto_config (known after apply)
+
+      [32m+[0m[0m node_pool_defaults (known after apply)
+
+      [32m+[0m[0m notification_config (known after apply)
+
+      [32m+[0m[0m private_cluster_config {
+          [32m+[0m[0m master_ipv4_cidr_block = (known after apply)
+          [32m+[0m[0m peering_name           = (known after apply)
+          [32m+[0m[0m private_endpoint       = (known after apply)
+          [32m+[0m[0m public_endpoint        = (known after apply)
+
+          [32m+[0m[0m master_global_access_config (known after apply)
+        }
+
+      [32m+[0m[0m release_channel {
+          [32m+[0m[0m channel = "REGULAR"
+        }
+
+      [32m+[0m[0m security_posture_config (known after apply)
+
+      [32m+[0m[0m service_external_ips_config (known after apply)
+
+      [32m+[0m[0m vertical_pod_autoscaling (known after apply)
+
+      [32m+[0m[0m workload_identity_config {
+          [32m+[0m[0m workload_pool = "cloudengr-prep.svc.id.goog"
+        }
+    }
+
+[1m  # module.gke.google_container_node_pool.app_pool[0m will be created
+[0m  [32m+[0m[0m resource "google_container_node_pool" "app_pool" {
+      [32m+[0m[0m cluster                     = "cloudengr-prep-gke"
+      [32m+[0m[0m id                          = (known after apply)
+      [32m+[0m[0m initial_node_count          = (known after apply)
+      [32m+[0m[0m instance_group_urls         = (known after apply)
+      [32m+[0m[0m location                    = "europe-west2"
+      [32m+[0m[0m managed_instance_group_urls = (known after apply)
+      [32m+[0m[0m max_pods_per_node           = (known after apply)
+      [32m+[0m[0m name                        = "app-pool"
+      [32m+[0m[0m name_prefix                 = (known after apply)
+      [32m+[0m[0m node_count                  = 1
+      [32m+[0m[0m node_locations              = (known after apply)
+      [32m+[0m[0m operation                   = (known after apply)
+      [32m+[0m[0m project                     = "cloudengr-prep"
+      [32m+[0m[0m version                     = (known after apply)
+
+      [32m+[0m[0m autoscaling {
+          [32m+[0m[0m location_policy = (known after apply)
+          [32m+[0m[0m max_node_count  = 3
+          [32m+[0m[0m min_node_count  = 1
+        }
+
+      [32m+[0m[0m management {
+          [32m+[0m[0m auto_repair  = true
+          [32m+[0m[0m auto_upgrade = true
+        }
+
+      [32m+[0m[0m network_config (known after apply)
+
+      [32m+[0m[0m node_config {
+          [32m+[0m[0m disk_size_gb      = 50
+          [32m+[0m[0m disk_type         = "pd-standard"
+          [32m+[0m[0m effective_taints  = (known after apply)
+          [32m+[0m[0m guest_accelerator = (known after apply)
+          [32m+[0m[0m image_type        = (known after apply)
+          [32m+[0m[0m labels            = {
+              [32m+[0m[0m "pool" = "app"
+            }
+          [32m+[0m[0m local_ssd_count   = (known after apply)
+          [32m+[0m[0m logging_variant   = (known after apply)
+          [32m+[0m[0m machine_type      = "e2-standard-2"
+          [32m+[0m[0m metadata          = (known after apply)
+          [32m+[0m[0m min_cpu_platform  = (known after apply)
+          [32m+[0m[0m oauth_scopes      = [
+              [32m+[0m[0m "https://www.googleapis.com/auth/cloud-platform",
+            ]
+          [32m+[0m[0m preemptible       = false
+          [32m+[0m[0m service_account   = "gke-node-sa@cloudengr-prep.iam.gserviceaccount.com"
+          [32m+[0m[0m spot              = false
+
+          [32m+[0m[0m confidential_nodes (known after apply)
+
+          [32m+[0m[0m gcfs_config (known after apply)
+
+          [32m+[0m[0m kubelet_config (known after apply)
+
+          [32m+[0m[0m shielded_instance_config {
+              [32m+[0m[0m enable_integrity_monitoring = true
+              [32m+[0m[0m enable_secure_boot          = true
+            }
+
+          [32m+[0m[0m workload_metadata_config {
+              [32m+[0m[0m mode = "GKE_METADATA"
+            }
+        }
+
+      [32m+[0m[0m upgrade_settings (known after apply)
+    }
+
+[1mPlan:[0m 2 to add, 0 to change, 0 to destroy.
+[0m[0m[1m
+Do you want to perform these actions?[0m
+  Terraform will perform the actions described above.
+  Only 'yes' will be accepted to approve.
+
+  [1mEnter a value:[0m [0m
+[0m[1mmodule.gke.google_container_cluster.primary: Creating...[0m[0m
+Releasing state lock. This may take a few moments...
