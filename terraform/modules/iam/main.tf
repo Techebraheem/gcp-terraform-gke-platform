@@ -1,25 +1,3 @@
-/*
-  IAM MODULE
-  ----------
-  The single biggest mental model shift coming from Azure:
-
-  Azure IAM = Management Group -> Subscription -> Resource Group -> Resource
-  GCP  IAM = Organization -> Folder -> Project -> Resource
-
-  Roles are bound at any level of that hierarchy and INHERIT DOWNWARD, same idea as
-  Azure RBAC inheritance from a Resource Group. The difference that trips people up:
-  GCP has three role types —
-    1. Basic roles (Owner/Editor/Viewer) — broad, legacy, avoid in production
-    2. Predefined roles (e.g. roles/artifactregistry.reader) — curated, least-privilege,
-       this is what you should default to
-    3. Custom roles — you define the exact permission set when predefined roles are
-       too broad. Same idea as a custom Azure role definition JSON.
-
-  THE PATTERN BELOW: one dedicated service account per workload/pipeline stage,
-  each with only the roles it needs. Never reuse a single "deploy-sa" for everything —
-  that's the GCP equivalent of giving every pipeline Contributor on the subscription.
-*/
-
 # --- Cloud Build service account: builds and pushes images, deploys to GKE ---
 resource "google_service_account" "cloudbuild_sa" {
   account_id   = "cloudbuild-deployer"
@@ -51,9 +29,7 @@ resource "google_project_iam_member" "cloudbuild_logging" {
   member  = "serviceAccount:${google_service_account.cloudbuild_sa.email}"
 }
 
-# --- Workload Identity: the GKE-native way for a Pod to act as a GCP service account ---
-# This replaces the old pattern of mounting SA key JSON files into pods (which is exactly
-# the kind of static-credential sprawl least-privilege reviews flag).
+# --- Workload Identity ---
 resource "google_service_account" "flask_app_sa" {
   account_id   = "flask-app-workload"
   display_name = "Flask App - Workload Identity SA"
@@ -87,7 +63,7 @@ resource "google_project_iam_member" "flask_app_monitoring" {
   member  = "serviceAccount:${google_service_account.flask_app_sa.email}"
 }
 
-# --- Custom role example: narrower than any predefined role, for a "release approver" persona ---
+# --- Custom role: narrower than any predefined role, for a "release approver" persona ---
 resource "google_project_iam_custom_role" "release_approver" {
   role_id     = "releaseApprover"
   title       = "Release Approver"

@@ -1,21 +1,3 @@
-/*
-  VPC MODULE
-  ----------
-  This is the networking foundation. Key GCP concepts vs Azure:
-
-  - GCP VPCs are GLOBAL resources (not regional like Azure VNets). Subnets are regional.
-  - We use a custom-mode VPC (not auto-mode) so we control CIDR ranges deliberately —
-    this is the standard for any production build, same reasoning as custom VNets in Azure.
-  - Private Google Access lets GKE nodes reach Google APIs (Artifact Registry, Cloud Storage,
-    Secret Manager) WITHOUT a public IP or NAT — critical for a locked-down cluster.
-  - Cloud NAT gives outbound internet to private nodes (e.g. pulling OS packages) without
-    ever assigning them public IPs. This is the equivalent of your Azure Firewall SNAT setup,
-    but managed and regional.
-  - Secondary IP ranges on the subnet are how GKE does VPC-native (alias IP) networking:
-    one range for Pods, one for Services. This avoids the old routes-based networking model
-    and is what any GKE build should use today.
-*/
-
 resource "google_compute_network" "vpc" {
   name                    = "${var.project_id}-vpc"
   auto_create_subnetworks = false

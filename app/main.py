@@ -6,8 +6,7 @@ from google.cloud import secretmanager
 
 # Structured JSON logging — Cloud Logging parses this automatically and extracts
 # severity, so logs show up correctly leveled in the console instead of all as
-# "default" severity. This is the equivalent of your Grafana/LGTM structured
-# logging setup, just Google's ingestion side instead of Loki's.
+# "default" severity.
 logging.basicConfig(level=logging.INFO, format='{"severity":"%(levelname)s","message":"%(message)s"}')
 logger = logging.getLogger(__name__)
 

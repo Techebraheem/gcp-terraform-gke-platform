@@ -1,0 +1,67 @@
+# CLOUD BUILD — PR VALIDATION PIPELINE
+# --------------------------------------
+# Trigger: Pull Request events against main.
+# Stages: Build -> Test -> Push (PR-tagged only) -> Scan.
+# Deliberately does NOT push :latest and does NOT deploy — a PR should never
+# be able to affect what's actually running, only prove the code is healthy.
+#
+# This is the check that GitHub branch protection points at ("require status
+# checks to pass"). If this trigger fails, the PR cannot be merged.
+
+steps:
+  # Stage 1: Build
+  - id: build
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      - build
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:pr-${_PR_NUMBER}"
+      - "./app"
+
+  # Stage 2: Test
+  - id: test
+    name: "python:3.12-slim"
+    entrypoint: bash
+    args:
+      - "-c"
+      - |
+        pip install --no-cache-dir -r app/requirements.txt pytest --break-system-packages || \
+        pip install --no-cache-dir -r app/requirements.txt pytest
+        pytest app/tests/ --junitxml=${SHORT_SHA}_test_log.xml
+    waitFor: ["build"]
+
+  # Stage 3: Push (PR tag only — never :latest, never the production tag)
+  - id: push
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      - push
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:pr-${_PR_NUMBER}"
+    waitFor: ["test"]
+
+  # Stage 4: Vulnerability scan (Trivy)
+  # Same gate as the deploy pipeline — a PR with HIGH/CRITICAL findings fails
+  # here, before it can ever reach main.
+  - id: trivy-scan
+    name: "aquasec/trivy:latest"
+    args:
+      - image
+      - "--exit-code"
+      - "1"
+      - "--severity"
+      - "HIGH,CRITICAL"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:pr-${_PR_NUMBER}"
+    waitFor: ["push"]
+
+substitutions:
+  _REGION: "us-central1"
+  _REPO: "flask-app"
+  # ${_PR_NUMBER} is auto-populated by Cloud Build when the trigger event is
+  # a pull request — no manual substitution needed at trigger-creation time.
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+# Note: no `serviceAccount:` override here — this trigger deliberately runs
+# as Cloud Build's default identity, which has NO deploy or attest permissions.
+# Only the main-deploy trigger runs as cloudbuild-deployer. This is the
+# actual mechanism enforcing "a PR build cannot deploy," not just convention.

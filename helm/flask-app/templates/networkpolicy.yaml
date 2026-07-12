@@ -28,7 +28,7 @@ spec:
     - Egress
   ingress:
     - from:
-        - namespaceSelector: {} # allow traffic only from within the cluster (e.g. an ingress controller)
+        - namespaceSelector: {} # allow traffic only from within the cluster
       ports:
         - port: 8080
   egress:

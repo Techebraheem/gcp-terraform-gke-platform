@@ -1,15 +1,3 @@
-/*
-  ARTIFACT REGISTRY MODULE
-  ------------------------
-  This is the direct equivalent of your ACR. Key differences:
-  - Regional by default (you pick where images live, close to where you build/deploy).
-  - Vulnerability scanning is a built-in API (Artifact Analysis / On-Demand Scanning),
-    not a bolt-on like Trivy-in-pipeline — though we ALSO run Trivy in Cloud Build
-    for defense in depth and to keep parity with your existing pipeline pattern.
-  - Cleanup policies here are the GCP-native way to stop image sprawl (equivalent
-    of an ACR retention policy).
-*/
-
 resource "google_artifact_registry_repository" "flask_app_repo" {
   location      = var.region
   repository_id = "flask-app"

@@ -1,0 +1,120 @@
+# CLOUD BUILD — MAIN DEPLOY PIPELINE
+# -------------------------------------
+# Trigger: push to main (i.e. after a PR has already passed cloudbuild-pr.yaml
+# and been merged). Stages: Build -> Test -> Push -> Scan -> Attest -> Deploy.
+#
+# The trigger itself should have "Require approval before build executes"
+# enabled in Cloud Build — that pauses the whole build (not just deploy)
+# until someone with the releaseApprover role clicks approve. See
+# terraform/modules/iam/main.tf for that custom role.
+
+steps:
+  # Stage 1: Build
+  - id: build
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      - build
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:${SHORT_SHA}"
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:latest"
+      - "./app"
+
+  # Stage 2: Test
+  - id: test
+    name: "python:3.12-slim"
+    entrypoint: bash
+    args:
+      - "-c"
+      - |
+        pip install --no-cache-dir -r app/requirements.txt pytest --break-system-packages || \
+        pip install --no-cache-dir -r app/requirements.txt pytest
+        pytest app/tests/ --junitxml=${SHORT_SHA}_test_log.xml
+    waitFor: ["build"]
+
+  # Stage 3: Push
+  - id: push
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      - push
+      - "--all-tags"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app"
+    waitFor: ["test"]
+
+  # Stage 4: Capture the pushed image's digest
+  # Binary Authorization attests a specific digest, not a mutable tag — a tag
+  # like :abc1234 could theoretically be overwritten later, but a digest is
+  # immutable by definition. This step is what the original single-file
+  # pipeline was missing: nothing ever wrote /workspace/digest.txt, so the
+  # attest step below would have failed. Fixed here.
+  - id: get-digest
+    name: "gcr.io/cloud-builders/gcloud"
+    entrypoint: bash
+    args:
+      - "-c"
+      - |
+        gcloud artifacts docker images describe \
+          "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:${SHORT_SHA}" \
+          --format='get(image_summary.digest)' > /workspace/digest.txt
+        cat /workspace/digest.txt
+    waitFor: ["push"]
+
+  # Stage 5: Vulnerability scan (Trivy)
+  - id: trivy-scan
+    name: "aquasec/trivy:latest"
+    args:
+      - image
+      - "--exit-code"
+      - "1"
+      - "--severity"
+      - "HIGH,CRITICAL"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:${SHORT_SHA}"
+    waitFor: ["get-digest"]
+
+  # Stage 6: Attest (Binary Authorization)
+  # Signs the exact digest as "passed CI" so GKE's Binary Authorization
+  # admission controller will actually allow the pod to schedule. Without
+  # this step, `helm install` succeeds but the pod sits in ImagePullBackOff /
+  # admission-denied forever — the most common Binary Authorization gotcha.
+  - id: attest
+    name: "gcr.io/cloud-builders/gcloud"
+    entrypoint: bash
+    args:
+      - "-c"
+      - |
+        gcloud beta container binauthz attestations sign-and-create \
+          --project="${PROJECT_ID}" \
+          --artifact-url="${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app@$(cat /workspace/digest.txt)" \
+          --attestor="cloudbuild-passed-attestor" \
+          --attestor-project="${PROJECT_ID}" \
+          --keyversion="${_KMS_KEY_VERSION}"
+    waitFor: ["trivy-scan"]
+
+  # Stage 7: Deploy
+  - id: deploy
+    name: "gcr.io/cloud-builders/gke-deploy"
+    args:
+      - run
+      - "--filename=helm/flask-app"
+      - "--image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:${SHORT_SHA}"
+      - "--location=${_REGION}"
+      - "--cluster=${_CLUSTER_NAME}"
+      - "--namespace=flask-app"
+    waitFor: ["attest"]
+
+substitutions:
+  _REGION: "us-central1"
+  _REPO: "flask-app"
+  _CLUSTER_NAME: "gcp-reference-project-gke"
+  _KMS_KEY_VERSION: "projects/PROJECT_ID/locations/global/keyRings/binauthz/cryptoKeys/attestor-key/cryptoKeyVersions/1"
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+# This trigger — and only this trigger — runs as cloudbuild-deployer, which
+# is the sole identity in this project with roles/container.developer
+# (deploy permission). The PR-validation trigger deliberately does NOT use
+# this service account. That difference is the actual security boundary
+# between "can validate" and "can deploy," not a config toggle that could
+# be flipped by mistake.
+serviceAccount: "projects/PROJECT_ID/serviceAccounts/cloudbuild-deployer@PROJECT_ID.iam.gserviceaccount.com"

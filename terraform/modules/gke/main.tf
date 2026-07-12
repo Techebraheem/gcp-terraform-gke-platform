@@ -1,39 +1,11 @@
-/*
-  GKE MODULE
-  ----------
-  This is your AKS knowledge, re-plumbed. Mapping:
-
-    AKS concept                  ->  GKE concept
-    ------------------------------------------------------------
-    AKS managed control plane    ->  GKE control plane (here: private, no public endpoint)
-    Azure AD Pod Identity /
-    Workload Identity            ->  GKE Workload Identity (same name, same idea)
-    Node pool                    ->  Node pool (identical concept)
-    Private cluster + Azure FW   ->  Private cluster + Cloud NAT (module above)
-    AKS network policy (Calico)  ->  GKE network policy (Calico/Dataplane V2)
-
-  DESIGN DECISIONS made here that a senior engineer should be able to defend out loud:
-  1. Private cluster (no public IP on nodes, no public control-plane endpoint) — reduces
-     attack surface to zero for direct internet access; ops still reach it via
-     Cloud NAT / bastion / Cloud Shell with authorized networks.
-  2. Autopilot is NOT used here — Standard mode is chosen deliberately so you can
-     demonstrate node pool sizing, taints/tolerations, and cost tuning knowledge,
-     which is exactly your AKS capacity-review experience carried over.
-  3. Workload Identity is mandatory (no legacy metadata-server credentials) — this is
-     the single most-asked GKE security question.
-  4. Dataplane V2 (Cilium-based) is enabled for network policy enforcement AND gives
-     you built-in flow logs for pod-to-pod traffic — useful for the same kind of
-     network-layer debugging you did on the greenapp-backend TLS issue.
-*/
-
 resource "google_container_cluster" "primary" {
   name     = "${var.project_id}-gke"
-  location = var.region # regional cluster = control plane replicated across zones, HA by default
+  location = var.region 
 
   network    = var.network_id
   subnetwork = var.subnet_id
 
-  # We manage node pools separately below — this just creates the control plane
+  # creates the control plane
   remove_default_node_pool = true
   initial_node_count       = 1
 
@@ -44,8 +16,8 @@ resource "google_container_cluster" "primary" {
   }
 
   private_cluster_config {
-    enable_private_nodes    = true
-    enable_private_endpoint = false # keep true if you want kubectl only reachable via VPN/bastion
+    enable_private_nodes    = false
+    enable_private_endpoint = false 
     master_ipv4_cidr_block  = var.master_cidr
   }
 
