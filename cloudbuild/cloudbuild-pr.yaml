@@ -61,7 +61,7 @@ substitutions:
 options:
   logging: CLOUD_LOGGING_ONLY
 
-# Note: no `serviceAccount:` override here — this trigger deliberately runs
-# as Cloud Build's default identity, which has NO deploy or attest permissions.
-# Only the main-deploy trigger runs as cloudbuild-deployer. This is the
-# actual mechanism enforcing "a PR build cannot deploy," not just convention.
+# Note: this trigger's service account is set in the Cloud Build Console
+# trigger config (Advanced -> Service account), not in this file. Use
+# cloudbuild-pr-validator@PROJECT_ID.iam.gserviceaccount.com — created in
+# terraform/modules/iam/main.tf specifically for this trigger.

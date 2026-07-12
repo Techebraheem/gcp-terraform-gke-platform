@@ -8,9 +8,6 @@ terraform {
     }
   }
 
-  # Remote state is mandatory for any team pipeline — never local state once
-  # more than one person or one pipeline touches this. This is the GCS
-  # equivalent of the Azure Storage Account backend you already use.
   backend "gcs" {
     bucket = "REPLACE_ME_terraform-state-bucket"
     prefix = "gcp-reference-project/dev"
@@ -22,7 +19,7 @@ provider "google" {
   region  = var.region
 }
 
-# --- Enable required APIs first; everything downstream depends on these ---
+# Enable required APIs first; everything downstream depends on these
 resource "google_project_service" "apis" {
   for_each = toset([
     "compute.googleapis.com",

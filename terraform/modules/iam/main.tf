@@ -1,8 +1,20 @@
-# --- Cloud Build service account: builds and pushes images, deploys to GKE ---
+# Cloud Build service account: builds and pushes images, deploys to GKE
 resource "google_service_account" "cloudbuild_sa" {
   account_id   = "cloudbuild-deployer"
   display_name = "Cloud Build - Flask App Deployer"
   description  = "Least-privilege SA used only by the Cloud Build pipeline"
+}
+
+# Cloud Build service account: PR validation only 
+# Used ONLY by the pr-validation trigger (cloudbuild-pr.yaml). Deliberately
+# has NO container.developer role and NO secretmanager access — this SA
+# physically cannot deploy or read secrets, which is the actual enforcement
+# mechanism behind "a PR build can't affect production," not just a comment.
+
+resource "google_service_account" "cloudbuild_pr_sa" {
+  account_id   = "cloudbuild-pr-validator"
+  display_name = "Cloud Build - PR Validation Only"
+  description  = "Narrow SA for PR validation: build, test, scan. No deploy, no secrets access."
 }
 
 resource "google_project_iam_member" "cloudbuild_artifact_writer" {
@@ -29,7 +41,7 @@ resource "google_project_iam_member" "cloudbuild_logging" {
   member  = "serviceAccount:${google_service_account.cloudbuild_sa.email}"
 }
 
-# --- Workload Identity ---
+# Workload Identity
 resource "google_service_account" "flask_app_sa" {
   account_id   = "flask-app-workload"
   display_name = "Flask App - Workload Identity SA"
