@@ -70,7 +70,7 @@ steps:
   # GKE cluster will actually admit it. Without this step, `kubectl apply`
   # or `helm install` will succeed but the pod will never schedule —
   # this is the single most confusing failure mode for anyone new to
-  # Binary Authorization, worth remembering for the interview.
+  # Binary Authorization.
   - id: attest
     name: "gcr.io/cloud-builders/gcloud"
     entrypoint: bash
