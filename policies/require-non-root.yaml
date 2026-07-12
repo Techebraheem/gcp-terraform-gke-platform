@@ -1,0 +1,45 @@
+# OPA/Gatekeeper constraint template + constraint.
+# Binary Authorization (in terraform/modules/artifact-registry) gates WHICH
+# IMAGES can be admitted. Gatekeeper gates HOW workloads are CONFIGURED —
+# a perfectly scanned, attested image can still be deployed with runAsRoot:
+# true or no resource limits, and this is the layer that catches that.
+#
+# Install Gatekeeper first: helm install gatekeeper gatekeeper/gatekeeper -n gatekeeper-system
+
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: k8srequirenonroot
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sRequireNonRoot
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8srequirenonroot
+
+        violation[{"msg": msg}] {
+          input.review.object.spec.securityContext.runAsNonRoot != true
+          msg := "Containers must set securityContext.runAsNonRoot: true"
+        }
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          not container.resources.limits.memory
+          msg := sprintf("Container %v must set memory limits", [container.name])
+        }
+---
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequireNonRoot
+metadata:
+  name: require-non-root-and-limits
+spec:
+  match:
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment"]
+    namespaces:
+      - "flask-app"
+  enforcementAction: deny # "dryrun" first in a real rollout, then flip to deny once clean

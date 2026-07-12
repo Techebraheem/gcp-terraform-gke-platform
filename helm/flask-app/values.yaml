@@ -1,0 +1,60 @@
+replicaCount: 2
+
+image:
+  repository: us-central1-docker.pkg.dev/PROJECT_ID/flask-app/flask-app
+  tag: latest
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  name: flask-app-ksa
+  # Filled in by IAM module output: gke-workload-sa@PROJECT_ID.iam.gserviceaccount.com
+  gcpServiceAccountEmail: ""
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+resources:
+  # Set from real utilization data, not guesses — this is exactly the discipline
+  # from your AKS capacity review (12-66% actual vs 92-99% requested problem).
+  # Start conservative, then right-size after a week of real metrics.
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+
+probes:
+  liveness:
+    path: /healthz
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  readiness:
+    path: /readyz
+    initialDelaySeconds: 5
+    periodSeconds: 10
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+networkPolicy:
+  enabled: true
+
+env:
+  GCP_PROJECT_ID: "PROJECT_ID"

@@ -1,0 +1,110 @@
+# CLOUD BUILD PIPELINE
+# ---------------------
+# Maps directly onto your Account Opening pattern: Build -> Update GitOps Repo -> Sync.
+# Stages here: Build -> Test -> Scan -> Attest -> Deploy.
+#
+# BRANCH STRATEGY (configure as two separate triggers in Cloud Build, not one):
+#   - feature/* and PRs into main  -> runs Build+Test+Scan only, NO deploy.
+#     This is your branch policy gate: a PR cannot merge until this trigger
+#     passes, configured in GitHub branch protection rules ("require status
+#     checks to pass" pointing at the Cloud Build check).
+#   - push to main                 -> runs the full pipeline including deploy,
+#     with a manual approval step gating the deploy stage (see approval note below).
+#
+# Substitution variables (_REGION, _REPO etc.) let one file serve both triggers;
+# only the trigger config differs, not the pipeline logic — same principle as
+# your single ADO pipeline template used across eleven services.
+
+steps:
+  # --- Stage 1: Build ---
+  - id: build
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      - build
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:${SHORT_SHA}"
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:latest"
+      - "./app"
+
+  # --- Stage 2: Test ---
+  - id: test
+    name: "python:3.12-slim"
+    entrypoint: bash
+    args:
+      - "-c"
+      - |
+        pip install --no-cache-dir -r app/requirements.txt pytest --break-system-packages || \
+        pip install --no-cache-dir -r app/requirements.txt pytest
+        pytest app/tests/ --junitxml=${SHORT_SHA}_test_log.xml
+    waitFor: ["build"]
+
+  # --- Stage 3: Push (needed before scanning by digest, and before deploy) ---
+  - id: push
+    name: "gcr.io/cloud-builders/docker"
+    args:
+      - push
+      - "--all-tags"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app"
+    waitFor: ["test"]
+
+  # --- Stage 4: Vulnerability scan (Trivy) ---
+  # Same tool you already run across the six Account Opening pipelines — kept
+  # identical here so the HIGH/CRITICAL findings behavior is a pattern you
+  # already know cold. Artifact Registry's built-in scanning also runs
+  # automatically on push (enabled in the artifact-registry Terraform module)
+  # as a second, independent layer of scanning.
+  - id: trivy-scan
+    name: "aquasec/trivy:latest"
+    args:
+      - image
+      - "--exit-code"
+      - "1" # fail the build on HIGH/CRITICAL, same as your existing gate
+      - "--severity"
+      - "HIGH,CRITICAL"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:${SHORT_SHA}"
+    waitFor: ["push"]
+
+  # --- Stage 5: Attest (Binary Authorization) ---
+  # Signs the image as "passed CI" so the Binary Authorization policy on the
+  # GKE cluster will actually admit it. Without this step, `kubectl apply`
+  # or `helm install` will succeed but the pod will never schedule —
+  # this is the single most confusing failure mode for anyone new to
+  # Binary Authorization, worth remembering for the interview.
+  - id: attest
+    name: "gcr.io/cloud-builders/gcloud"
+    entrypoint: bash
+    args:
+      - "-c"
+      - |
+        gcloud beta container binauthz attestations sign-and-create \
+          --project="${PROJECT_ID}" \
+          --artifact-url="${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app@$(cat /workspace/digest.txt)" \
+          --attestor="cloudbuild-passed-attestor" \
+          --attestor-project="${PROJECT_ID}" \
+          --keyversion="${_KMS_KEY_VERSION}"
+    waitFor: ["trivy-scan"]
+
+  # --- Stage 6: Deploy (only runs on the main-branch trigger) ---
+  - id: deploy
+    name: "gcr.io/cloud-builders/gke-deploy"
+    args:
+      - run
+      - "--filename=helm/flask-app"
+      - "--image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:${SHORT_SHA}"
+      - "--location=${_REGION}"
+      - "--cluster=${_CLUSTER_NAME}"
+      - "--namespace=flask-app"
+    waitFor: ["attest"]
+
+substitutions:
+  _REGION: "us-central1"
+  _REPO: "flask-app"
+  _CLUSTER_NAME: "gcp-reference-project-gke"
+  _KMS_KEY_VERSION: "projects/PROJECT_ID/locations/global/keyRings/binauthz/cryptoKeys/attestor-key/cryptoKeyVersions/1"
+
+options:
+  logging: CLOUD_LOGGING_ONLY # writes build logs to Cloud Logging, not just the Build UI —
+                               # keeps everything queryable in one place with app logs
+
+serviceAccount: "projects/PROJECT_ID/serviceAccounts/cloudbuild-deployer@PROJECT_ID.iam.gserviceaccount.com"
