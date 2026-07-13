@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/GoogleCloudPlatform/cloud-build-local/master/cloudbuild.schema.json
+
 # CLOUD BUILD — MAIN DEPLOY PIPELINE
 # -------------------------------------
 # Trigger: push to main (i.e. after a PR has already passed cloudbuild-pr.yaml
@@ -8,8 +10,9 @@
 # until someone with the releaseApprover role clicks approve. See
 # terraform/modules/iam/main.tf for that custom role.
 
+
 steps:
-  # Stage 1: Build
+  # --- Stage 1: Build ---
   - id: build
     name: "gcr.io/cloud-builders/docker"
     args:
@@ -20,7 +23,7 @@ steps:
       - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:latest"
       - "./app"
 
-  # Stage 2: Test
+  # --- Stage 2: Test ---
   - id: test
     name: "python:3.12-slim"
     entrypoint: bash
@@ -32,7 +35,7 @@ steps:
         pytest app/tests/ --junitxml=${SHORT_SHA}_test_log.xml
     waitFor: ["build"]
 
-  # Stage 3: Push
+  # --- Stage 3: Push ---
   - id: push
     name: "gcr.io/cloud-builders/docker"
     args:
@@ -41,7 +44,7 @@ steps:
       - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app"
     waitFor: ["test"]
 
-  # Stage 4: Capture the pushed image's digest
+  # --- Stage 4: Capture the pushed image's digest ---
   # Binary Authorization attests a specific digest, not a mutable tag — a tag
   # like :abc1234 could theoretically be overwritten later, but a digest is
   # immutable by definition. This step is what the original single-file
@@ -59,7 +62,7 @@ steps:
         cat /workspace/digest.txt
     waitFor: ["push"]
 
-  # Stage 5: Vulnerability scan (Trivy)
+  # --- Stage 5: Vulnerability scan (Trivy) ---
   - id: trivy-scan
     name: "aquasec/trivy:latest"
     args:
@@ -71,11 +74,16 @@ steps:
       - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:${SHORT_SHA}"
     waitFor: ["get-digest"]
 
-  # Stage 6: Attest (Binary Authorization)
+  # --- Stage 6: Attest (Binary Authorization) ---
   # Signs the exact digest as "passed CI" so GKE's Binary Authorization
   # admission controller will actually allow the pod to schedule. Without
   # this step, `helm install` succeeds but the pod sits in ImagePullBackOff /
   # admission-denied forever — the most common Binary Authorization gotcha.
+  #
+  # The keyring/key names below (binauthz-keyring, attestor-key) must exactly
+  # match what Terraform creates in
+  # terraform/modules/artifact-registry/main.tf. If you ever rename those
+  # resources there, update this line to match.
   - id: attest
     name: "gcr.io/cloud-builders/gcloud"
     entrypoint: bash
@@ -87,10 +95,10 @@ steps:
           --artifact-url="${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app@$(cat /workspace/digest.txt)" \
           --attestor="cloudbuild-passed-attestor" \
           --attestor-project="${PROJECT_ID}" \
-          --keyversion="${_KMS_KEY_VERSION}"
+          --keyversion="projects/${PROJECT_ID}/locations/global/keyRings/binauthz-keyring/cryptoKeys/attestor-key/cryptoKeyVersions/1"
     waitFor: ["trivy-scan"]
 
-  # Stage 7: Deploy
+  # --- Stage 7: Deploy ---
   - id: deploy
     name: "gcr.io/cloud-builders/gke-deploy"
     args:
@@ -106,7 +114,6 @@ substitutions:
   _REGION: "us-central1"
   _REPO: "flask-app"
   _CLUSTER_NAME: "gcp-reference-project-gke"
-  _KMS_KEY_VERSION: "projects/PROJECT_ID/locations/global/keyRings/binauthz/cryptoKeys/attestor-key/cryptoKeyVersions/1"
 
 options:
   logging: CLOUD_LOGGING_ONLY

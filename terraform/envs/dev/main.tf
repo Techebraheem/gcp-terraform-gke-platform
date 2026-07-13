@@ -33,6 +33,7 @@ resource "google_project_service" "apis" {
     "binaryauthorization.googleapis.com",
     "containeranalysis.googleapis.com",
     "containerscanning.googleapis.com",
+    "cloudkms.googleapis.com",
   ])
   service            = each.key
   disable_on_destroy = false
@@ -72,12 +73,13 @@ resource "google_project_iam_member" "node_sa_minimal" {
 }
 
 module "artifact_registry" {
-  source               = "../../modules/artifact-registry"
-  project_id           = var.project_id
-  region               = var.region
-  attestor_public_key  = var.attestor_public_key
+  source                        = "../../modules/artifact-registry"
+  project_id                    = var.project_id
+  region                        = var.region
+  attestor_public_key_pem       = var.attestor_public_key_pem
+  cloudbuild_deployer_sa_email  = module.iam.cloudbuild_sa_email
 
-  depends_on = [google_project_service.apis]
+  depends_on = [google_project_service.apis, module.iam]
 }
 
 module "gke" {

@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/GoogleCloudPlatform/cloud-build-local/master/cloudbuild.schema.json
 # CLOUD BUILD — PR VALIDATION PIPELINE
 # --------------------------------------
 # Trigger: Pull Request events against main.
