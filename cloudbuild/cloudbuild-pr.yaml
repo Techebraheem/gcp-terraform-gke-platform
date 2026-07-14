@@ -1,4 +1,3 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/GoogleCloudPlatform/cloud-build-local/master/cloudbuild.schema.json
 # CLOUD BUILD — PR VALIDATION PIPELINE
 # --------------------------------------
 # Trigger: Pull Request events against main.
@@ -10,7 +9,7 @@
 # checks to pass"). If this trigger fails, the PR cannot be merged.
 
 steps:
-  # Stage 1: Build
+  # --- Stage 1: Build ---
   - id: build
     name: "gcr.io/cloud-builders/docker"
     args:
@@ -19,7 +18,7 @@ steps:
       - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:pr-${_PR_NUMBER}"
       - "./app"
 
-  # Stage 2: Test
+  # --- Stage 2: Test ---
   - id: test
     name: "python:3.12-slim"
     entrypoint: bash
@@ -28,10 +27,10 @@ steps:
       - |
         pip install --no-cache-dir -r app/requirements.txt pytest --break-system-packages || \
         pip install --no-cache-dir -r app/requirements.txt pytest
-        pytest app/tests/ --junitxml=${SHORT_SHA}_test_log.xml
+        cd app && pytest tests/ --junitxml=/workspace/${SHORT_SHA}_test_log.xml
     waitFor: ["build"]
 
-  # Stage 3: Push (PR tag only — never :latest, never the production tag)
+  # --- Stage 3: Push (PR tag only — never :latest, never the production tag) ---
   - id: push
     name: "gcr.io/cloud-builders/docker"
     args:
@@ -39,7 +38,7 @@ steps:
       - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:pr-${_PR_NUMBER}"
     waitFor: ["test"]
 
-  # Stage 4: Vulnerability scan (Trivy)
+  # --- Stage 4: Vulnerability scan (Trivy) ---
   # Same gate as the deploy pipeline — a PR with HIGH/CRITICAL findings fails
   # here, before it can ever reach main.
   - id: trivy-scan
@@ -65,4 +64,7 @@ options:
 # Note: this trigger's service account is set in the Cloud Build Console
 # trigger config (Advanced -> Service account), not in this file. Use
 # cloudbuild-pr-validator@PROJECT_ID.iam.gserviceaccount.com — created in
-# terraform/modules/iam/main.tf specifically for this trigger.
+# terraform/modules/iam/main.tf specifically for this trigger. It has NO
+# deploy permission and NO secrets access, which is the real enforcement
+# behind "a PR build cannot deploy." GitHub App (2nd-gen) triggers require
+# an explicit user-managed service account; there's no more implicit default.

@@ -1,5 +1,3 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/GoogleCloudPlatform/cloud-build-local/master/cloudbuild.schema.json
-
 # CLOUD BUILD — MAIN DEPLOY PIPELINE
 # -------------------------------------
 # Trigger: push to main (i.e. after a PR has already passed cloudbuild-pr.yaml
@@ -9,7 +7,6 @@
 # enabled in Cloud Build — that pauses the whole build (not just deploy)
 # until someone with the releaseApprover role clicks approve. See
 # terraform/modules/iam/main.tf for that custom role.
-
 
 steps:
   # --- Stage 1: Build ---
@@ -32,7 +29,7 @@ steps:
       - |
         pip install --no-cache-dir -r app/requirements.txt pytest --break-system-packages || \
         pip install --no-cache-dir -r app/requirements.txt pytest
-        pytest app/tests/ --junitxml=${SHORT_SHA}_test_log.xml
+        cd app && pytest tests/ --junitxml=/workspace/${SHORT_SHA}_test_log.xml
     waitFor: ["build"]
 
   # --- Stage 3: Push ---
