@@ -17,6 +17,22 @@ resource "google_service_account" "cloudbuild_pr_sa" {
   description  = "Narrow SA for PR validation: build, test, scan. No deploy, no secrets access."
 }
 
+# These two grants are what let pr-validation actually push a tagged image
+# and write build logs. Without them: the push step fails with a permission
+# error, and even before that, logs never get written to Cloud Logging at
+# all — which is exactly the "empty log output" symptom we chased earlier.
+resource "google_project_iam_member" "cloudbuild_pr_artifact_writer" {
+  project = var.project_id
+  role    = "roles/artifactregistry.writer"
+  member  = "serviceAccount:${google_service_account.cloudbuild_pr_sa.email}"
+}
+
+resource "google_project_iam_member" "cloudbuild_pr_logging" {
+  project = var.project_id
+  role    = "roles/logging.logWriter"
+  member  = "serviceAccount:${google_service_account.cloudbuild_pr_sa.email}"
+}
+
 resource "google_project_iam_member" "cloudbuild_artifact_writer" {
   project = var.project_id
   role    = "roles/artifactregistry.writer"
