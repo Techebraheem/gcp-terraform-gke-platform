@@ -53,7 +53,7 @@ steps:
     waitFor: ["push"]
 
 substitutions:
-  _REGION: "us-central1"
+  _REGION: "europe-west2"
   _REPO: "flask-app"
   # ${_PR_NUMBER} is auto-populated by Cloud Build when the trigger event is
   # a pull request — no manual substitution needed at trigger-creation time.

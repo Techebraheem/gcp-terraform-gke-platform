@@ -108,9 +108,9 @@ steps:
     waitFor: ["attest"]
 
 substitutions:
-  _REGION: "us-central1"
+  _REGION: "europe-west2"
   _REPO: "flask-app"
-  _CLUSTER_NAME: "gcp-reference-project-gke"
+  _CLUSTER_NAME: "cloudengr-prep-gke"
 
 options:
   logging: CLOUD_LOGGING_ONLY
