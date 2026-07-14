@@ -6,3 +6,5 @@ terraform.tfvars
 __pycache__/
 *.pyc
 .DS_Store
+test_log.xml
+*.xml
