@@ -2,3 +2,8 @@ flask==3.0.3
 gunicorn==22.0.0
 google-cloud-secret-manager==2.20.2
 google-cloud-logging==3.11.0
+# Pinned explicitly (rather than left to pip's automatic resolution, which
+# picked 4.25.9) to fix CVE-2026-0994 — a HIGH severity DoS via recursion
+# depth bypass, found by Trivy. 5.29.6 is within google-cloud-secret-manager's
+# accepted range (<6.0.0dev,>=3.20.2), so this doesn't break the dependency.
+protobuf==5.29.6
