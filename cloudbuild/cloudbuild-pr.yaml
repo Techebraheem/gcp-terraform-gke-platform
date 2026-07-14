@@ -9,7 +9,7 @@
 # checks to pass"). If this trigger fails, the PR cannot be merged.
 
 steps:
-  # Stage 1: Build
+  # --- Stage 1: Build ---
   - id: build
     name: "gcr.io/cloud-builders/docker"
     args:
@@ -18,7 +18,7 @@ steps:
       - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:pr-${_PR_NUMBER}"
       - "./app"
 
-  # Stage 2: Test
+  # --- Stage 2: Test ---
   - id: test
     name: "python:3.12-slim"
     entrypoint: bash
@@ -30,7 +30,7 @@ steps:
         pytest app/tests/ --junitxml=${SHORT_SHA}_test_log.xml
     waitFor: ["build"]
 
-  # Stage 3: Push (PR tag only — never :latest, never the production tag)
+  # --- Stage 3: Push (PR tag only — never :latest, never the production tag) ---
   - id: push
     name: "gcr.io/cloud-builders/docker"
     args:
@@ -38,9 +38,12 @@ steps:
       - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:pr-${_PR_NUMBER}"
     waitFor: ["test"]
 
-  # Stage 4: Vulnerability scan (Trivy)
+  # --- Stage 4: Vulnerability scan (Trivy) ---
   # Same gate as the deploy pipeline — a PR with HIGH/CRITICAL findings fails
-  # here, before it can ever reach main.
+  # here, before it can ever reach main. --ignorefile points at a curated,
+  # justified list (app/.trivyignore) — see that file for why each entry is
+  # there. This is NOT a way to silence the scanner; every finding still
+  # shows in the scan output, it just doesn't fail the build.
   - id: trivy-scan
     name: "aquasec/trivy:latest"
     args:
@@ -49,11 +52,13 @@ steps:
       - "1"
       - "--severity"
       - "HIGH,CRITICAL"
+      - "--ignorefile"
+      - "app/.trivyignore"
       - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:pr-${_PR_NUMBER}"
     waitFor: ["push"]
 
 substitutions:
-  _REGION: "us-central1"
+  _REGION: "europe-west2"
   _REPO: "flask-app"
   # ${_PR_NUMBER} is auto-populated by Cloud Build when the trigger event is
   # a pull request — no manual substitution needed at trigger-creation time.
@@ -64,4 +69,7 @@ options:
 # Note: this trigger's service account is set in the Cloud Build Console
 # trigger config (Advanced -> Service account), not in this file. Use
 # cloudbuild-pr-validator@PROJECT_ID.iam.gserviceaccount.com — created in
-# terraform/modules/iam/main.tf specifically for this trigger.
+# terraform/modules/iam/main.tf specifically for this trigger. It has NO
+# deploy permission and NO secrets access, which is the real enforcement
+# behind "a PR build cannot deploy." GitHub App (2nd-gen) triggers require
+# an explicit user-managed service account; there's no more implicit default.

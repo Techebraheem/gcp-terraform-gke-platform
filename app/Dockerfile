@@ -24,4 +24,5 @@ USER appuser
 EXPOSE 8080
 
 # gunicorn, not flask's dev server — the dev server is single-threaded and
+# explicitly not for production use.
 CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--threads", "4", "main:app"]
