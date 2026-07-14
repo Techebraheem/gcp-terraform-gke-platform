@@ -1,0 +1,2 @@
+test_log.xml
+*.xml # catches this and any future junit output files too
