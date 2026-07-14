@@ -27,7 +27,7 @@ steps:
       - |
         pip install --no-cache-dir -r app/requirements.txt pytest --break-system-packages || \
         pip install --no-cache-dir -r app/requirements.txt pytest
-        cd app && pytest tests/ --junitxml=/workspace/${SHORT_SHA}_test_log.xml
+        pytest app/tests/ --junitxml=${SHORT_SHA}_test_log.xml
     waitFor: ["build"]
 
   # --- Stage 3: Push (PR tag only — never :latest, never the production tag) ---
