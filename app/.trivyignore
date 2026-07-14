@@ -1,0 +1,54 @@
+# TRIVY IGNORE FILE
+# ------------------
+# Every entry here is a deliberate, documented risk decision — not a blanket
+# suppression. Each CVE is either (a) in OS packages this Flask app never
+# invokes at runtime, or (b) blocked from a real fix by a dependency version
+# constraint that's tracked and worth revisiting later. Nothing here is
+# ignored just to make the scan pass.
+#
+# Review periodically: re-run `docker run --rm aquasec/trivy image <image>`
+# without this file to see the current full list, and remove entries here
+# once a real fix becomes available (Debian patches these on its own
+# schedule; check Fixed Version column, currently blank for most below).
+
+# --- util-linux family: libblkid partition-parsing integer overflow ---
+# Affects bsdutils, libblkid1, libsmartcols1, libuuid1, util-linux.
+# This app is a stateless Flask API in a container — it never parses disk
+# partitions or block devices. No fix available yet upstream.
+CVE-2026-53615
+
+# --- gzip: buffer overflow in LZH decompression ---
+# The app never invokes the gzip binary directly, and Python's own gzip
+# module (used nowhere in this codebase) is unaffected — this CVE is
+# specific to the standalone LZH decompression path in GNU gzip's CLI.
+CVE-2026-41992
+
+# --- libacl1: symlink traversal privilege escalation via ACL functions ---
+# App never manipulates POSIX ACLs or extended file permissions.
+CVE-2026-54369
+
+# --- ncurses: buffer overflow (libncursesw6, libtinfo6, ncurses-base) ---
+# This is a terminal UI library. The app runs headless behind gunicorn —
+# no interactive terminal session ever touches this container.
+CVE-2025-69720
+
+# --- Perl runtime + Archive::Tar / IO::Compress modules ---
+# perl-base is a Debian base-image dependency, not something this app uses.
+# The Flask app and its Python dependencies never invoke Perl in any form.
+# Grouped together since all five affect the same unused perl-base package.
+CVE-2026-42496
+CVE-2026-8376
+CVE-2026-42497
+CVE-2026-48962
+CVE-2026-9538
+
+# --- protobuf: DoS via recursion depth bypass ---
+# UNLIKE the entries above, this one genuinely matters — protobuf is core
+# to the google-cloud-* SDKs this app actually uses for Secret Manager and
+# Cloud Logging. A fix exists (protobuf 5.29.6 / 6.33.5) but is BLOCKED:
+# google-cloud-logging==3.11.0 pins protobuf to <5.0.0dev, so no patched
+# version satisfies both dependencies simultaneously (confirmed via direct
+# pip resolution attempt — see requirements.txt history). Accepted as a
+# tracked risk. Revisit when google-cloud-logging releases a version
+# supporting protobuf 5.x, then remove this line and re-pin protobuf.
+CVE-2026-0994

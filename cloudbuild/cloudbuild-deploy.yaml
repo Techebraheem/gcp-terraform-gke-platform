@@ -60,6 +60,8 @@ steps:
     waitFor: ["push"]
 
   # --- Stage 5: Vulnerability scan (Trivy) ---
+  # --ignorefile: see app/.trivyignore for the justified, curated exception
+  # list — every entry documented with why it's accepted, not just silenced.
   - id: trivy-scan
     name: "aquasec/trivy:latest"
     args:
@@ -68,6 +70,8 @@ steps:
       - "1"
       - "--severity"
       - "HIGH,CRITICAL"
+      - "--ignorefile"
+      - "app/.trivyignore"
       - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/flask-app:${SHORT_SHA}"
     waitFor: ["get-digest"]
 
